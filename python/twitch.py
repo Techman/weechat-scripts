@@ -69,7 +69,7 @@
 
 SCRIPT_NAME = "twitch"
 SCRIPT_AUTHOR = "mumixam"
-SCRIPT_VERSION = "1.0.1"
+SCRIPT_VERSION = "1.0.2"
 SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC = "twitch.tv Chat Integration"
 OPTIONS={
@@ -353,7 +353,7 @@ def twitch_clearchat(data, modifier, modifier_data, string):
         if user:
             if 'ban-duration' in tags:
                 if 'ban-reason' in tags and tags['ban-reason']:
-                    bn=tags['ban-reason'].replace('\s',' ')
+                    bn=tags['ban-reason'].replace('\\s',' ')
                     weechat.prnt(buffer,"%s--%s %s has been timed out for %s seconds %sReason%s: %s" %
                         (pcolor, ccolor, user, tags['ban-duration'], ul, rul, bn))
                 else:
@@ -361,7 +361,7 @@ def twitch_clearchat(data, modifier, modifier_data, string):
                         (pcolor, ccolor, user, tags['ban-duration']))
             elif 'ban-reason' in tags:
                 if tags['ban-reason']:
-                    bn=tags['ban-reason'].replace('\s',' ')
+                    bn=tags['ban-reason'].replace('\\s',' ')
                     weechat.prnt(buffer,"%s--%s %s has been banned %sReason%s: %s" %
                         (pcolor, ccolor, user, ul, rul,bn))
                 else:
@@ -458,7 +458,7 @@ def twitch_usernotice(data, modifier, server, string):
         "irc", "%s.%s" % (server, mp['channel']))
     if mp['tags']:
         tags = dict([s.split('=',1) for s in mp['tags'].split(';')])
-        msg = tags['system-msg'].replace('\s',' ')
+        msg = tags['system-msg'].replace('\\s',' ')
         if mp['text']:
             msg += ' [Comment] '+mp['text']
         weechat.prnt(buffer, '%s--%s %s' % (pcolor, ccolor, msg))
