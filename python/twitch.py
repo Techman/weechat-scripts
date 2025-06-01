@@ -35,6 +35,8 @@
 # plugins.var.python.twitch.token (default: "")
 #
 # # History:
+# 2025-05-31, Techman
+#     v1.1: added logger tags to messages
 #
 # 2024-06-29, mumixam + stacyharper
 #     v1.0: eval client_id and token expressions so that /secure can be used
@@ -69,7 +71,7 @@
 
 SCRIPT_NAME = "twitch"
 SCRIPT_AUTHOR = "mumixam"
-SCRIPT_VERSION = "1.0.2"
+SCRIPT_VERSION = "1.1.0"
 SCRIPT_LICENSE = "GPL3"
 SCRIPT_DESC = "twitch.tv Chat Integration"
 OPTIONS={
@@ -82,13 +84,14 @@ OPTIONS={
     'token': ('', 'Twitch User Token')
 }
 
-import weechat
+import ast
 import json
+import string
+import time
 from calendar import timegm
 from datetime import datetime, timedelta
-import time
-import string
-import ast
+
+import weechat
 
 curlopt = {
     "httpheader": "\n".join([
@@ -143,12 +146,12 @@ def stream_api(data, command, rc, stdout, stderr):
     try:
         jsonDict = json.loads(stdout.strip())
     except Exception as e:
-        weechat.prnt(data, '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
+        weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
         if OPTIONS['debug']:
-            weechat.prnt(data,'%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
-            weechat.prnt(data,'%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
-            weechat.prnt(data,'%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
-            weechat.prnt(data,'%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
         return weechat.WEECHAT_RC_OK
     currentbuf = weechat.current_buffer()
     title_fg = weechat.color(
@@ -166,9 +169,9 @@ def stream_api(data, command, rc, stdout, stderr):
     slow = weechat.buffer_get_string(data, 'localvar_slow')
     emote = weechat.buffer_get_string(data, 'localvar_emote')
     if not 'data' in jsonDict.keys():
-        weechat.prnt(data, 'twitch.py: Error with twitch API (data key missing from json)')
+        weechat.prnt_datetime_tags(data, 0, 0, 'log9', 'twitch.py: Error with twitch API (data key missing from json)')
         if OPTIONS['debug']:
-            weechat.prnt(data, 'twitch.py: %s' % stdout.strip())
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', 'twitch.py: %s' % stdout.strip())
         return weechat.WEECHAT_RC_OK
     if not jsonDict['data']:
         line = "STREAM: %sOFFLINE%s %sCHECKED AT: (%s)" % (
@@ -216,8 +219,8 @@ def stream_api(data, command, rc, stdout, stderr):
                 titleutf8=str(titleutf8,'utf8')
             oldtitle = weechat.buffer_get_string(data, 'localvar_tstatus')
             if not oldtitle == titleascii:
-                weechat.prnt(data, '%s--%s Title is "%s"' %
-                             (pcolor, ccolor, titleutf8))
+                weechat.prnt_datetime_tags(data, 0, 0, 'irc_topic,log3', '%s--%s\tTitle is "%s"' %
+                                            (pcolor, ccolor, titleutf8))
                 weechat.buffer_set(data, 'localvar_set_tstatus', titleascii)
 
         output += ' (%s)' % ptime
@@ -243,12 +246,12 @@ def game_api(data, command, rc, stdout, stderr):
     try:
         jsonDict = json.loads(stdout.strip())
     except Exception as e:
-        weechat.prnt(data, '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
+        weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
         if OPTIONS['debug']:
-            weechat.prnt(data,'%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
-            weechat.prnt(data,'%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
-            weechat.prnt(data,'%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
-            weechat.prnt(data,'%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
         return weechat.WEECHAT_RC_OK
 
     if 'data' in jsonDict.keys():
@@ -270,12 +273,12 @@ def channel_api(data, command, rc, stdout, stderr):
     try:
         jsonDict = json.loads(stdout.strip())
     except Exception as e:
-        weechat.prnt(data, '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
+        weechat.prnt_datetime_tags(data, 0, 0, 'log9', '%stwitch.py: error communicating with twitch api' % weechat.prefix('error'))
         if OPTIONS['debug']:
-            weechat.prnt(data['buffer'],'%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
-            weechat.prnt(data['buffer'],'%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
-            weechat.prnt(data['buffer'],'%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
-            weechat.prnt(data['buffer'],'%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
+            weechat.prnt_datetime_tags(data['buffer'], 0, 0, 'log9', '%stwitch.py: return code: %s' % (weechat.prefix('error'),rc))
+            weechat.prnt_datetime_tags(data['buffer'], 0, 0, 'log9', '%stwitch.py: stdout: %s' % (weechat.prefix('error'),stdout))
+            weechat.prnt_datetime_tags(data['buffer'], 0, 0, 'log9', '%stwitch.py: stderr: %s' % (weechat.prefix('error'),stderr))
+            weechat.prnt_datetime_tags(data['buffer'], 0, 0, 'log9', '%stwitch.py: exception: %s' % (weechat.prefix('error'),e))
         return weechat.WEECHAT_RC_OK
     currentbuf = weechat.current_buffer()
     pcolor = weechat.color('chat_prefix_network')
@@ -296,7 +299,7 @@ def channel_api(data, command, rc, stdout, stderr):
                 name = uid_cache[uid]
             output = '%s%s %s[%s%s%s]%s %sFollowers%s: %s' % (
                 pcolor, pformat, dcolor, ncolor, name, dcolor, ccolor, ul, rul, followers)
-            weechat.prnt(data, makeutf8(output))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log3', makeutf8(output))
             url = 'https://api.twitch.tv/helix/users/follows?from_id=' + uid
             url_hook = weechat.hook_process_hashtable(
                 "url:" + url, curlopt, 7 * 1000, "channel_api", data)
@@ -307,7 +310,7 @@ def channel_api(data, command, rc, stdout, stderr):
                 name = uid_cache[uid]
             output = '%s%s %s[%s%s%s]%s %sFollowing%s: %s' % (
                 pcolor, pformat, dcolor, ncolor, name, dcolor, ccolor, ul, rul, following)
-            weechat.prnt(data, makeutf8(output))
+            weechat.prnt_datetime_tags(data, 0, 0, 'log3', makeutf8(output))
             return weechat.WEECHAT_RC_OK
     if ('users' in jsonDict) and jsonDict['users'] and len(jsonDict['users'][0]) == 8:
         dname = jsonDict['users'][0]['display_name']
@@ -323,13 +326,13 @@ def channel_api(data, command, rc, stdout, stderr):
         if status:
             output += '\n%s%s %s[%s%s%s]%s %sBio%s: %s' % (
                 pcolor, pformat, dcolor, ncolor, name, dcolor, ccolor, ul, rul, status)
-        weechat.prnt(data, makeutf8(output))
+        weechat.prnt_datetime_tags(data, 0, 0, 'log3', makeutf8(output))
         url = 'https://api.twitch.tv/helix/users/follows?to_id=' + uid
         url_hook = weechat.hook_process_hashtable(
             "url:" + url, curlopt, 7 * 1000, "channel_api", data)
 
     else:
-        weechat.prnt(data, 'Error: No Such User')
+        weechat.prnt_datetime_tags(data, 0, 0, 'log3', 'Error: No Such User')
 
     return weechat.WEECHAT_RC_OK
 
@@ -350,29 +353,28 @@ def twitch_clearchat(data, modifier, modifier_data, string):
         ccolor = weechat.color('chat')
         ul = weechat.color("underline")
         rul = weechat.color("-underline")
+        weechat_tags = 'irc_notice,log1,notify_message'
         if user:
             if 'ban-duration' in tags:
                 if 'ban-reason' in tags and tags['ban-reason']:
                     bn=tags['ban-reason'].replace('\\s',' ')
-                    weechat.prnt(buffer,"%s--%s %s has been timed out for %s seconds %sReason%s: %s" %
-                        (pcolor, ccolor, user, tags['ban-duration'], ul, rul, bn))
+                    weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\t%s has been timed out for %s seconds %sReason%s: %s" %
+                                                (pcolor, ccolor, user, tags['ban-duration'], ul, rul, bn))
                 else:
-                    weechat.prnt(buffer,"%s--%s %s has been timed out for %s seconds" %
-                        (pcolor, ccolor, user, tags['ban-duration']))
+                    weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\t%s has been timed out for %s seconds" %
+                                                (pcolor, ccolor, user, tags['ban-duration']))
             elif 'ban-reason' in tags:
                 if tags['ban-reason']:
                     bn=tags['ban-reason'].replace('\\s',' ')
-                    weechat.prnt(buffer,"%s--%s %s has been banned %sReason%s: %s" %
-                        (pcolor, ccolor, user, ul, rul,bn))
+                    weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\t%s has been banned %sReason%s: %s" %
+                                                (pcolor, ccolor, user, ul, rul,bn))
                 else:
-                    weechat.prnt(buffer,"%s--%s %s has been banned" %
-                        (pcolor, ccolor, user))
+                    weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\t%s has been banned" %
+                                                (pcolor, ccolor, user))
             else:
-                weechat.prnt(
-                    buffer, "%s--%s %s's Chat Cleared By Moderator" % (pcolor, ccolor, user))
+                weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\t%s's Chat Cleared By Moderator" % (pcolor, ccolor, user))
         else:
-            weechat.prnt(
-                buffer, "%s--%s Entire Chat Cleared By Moderator" % (pcolor, ccolor))
+            weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\tEntire Chat Cleared By Moderator" % (pcolor, ccolor))
     return ""
 
 
@@ -389,10 +391,11 @@ def twitch_clearmsg(data, modifier, modifier_data, string):
     if buffer:
         pcolor = weechat.color('chat_prefix_network')
         ccolor = weechat.color('chat')
+        weechat_tags = 'irc_notice,log1,notify_message'
         if 'login' in tags:
-            weechat.prnt(buffer,"%s--%s a message from %s was deleted" % (pcolor, ccolor, tags['login']))
+            weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\tA message from %s was deleted" % (pcolor, ccolor, tags['login']))
         else:
-            weechat.prnt(buffer, "%s--%s a message was deleted" % (pcolor, ccolor))
+            weechat.prnt_datetime_tags(buffer, 0, 0, weechat_tags, "%s--%s\tA message was deleted" % (pcolor, ccolor))
     return ""
 
 
@@ -406,8 +409,7 @@ def twitch_reconnect(data, modifier, modifier_data, string):
     if buffer:
         pcolor = weechat.color('chat_prefix_network')
         ccolor = weechat.color('chat')
-        weechat.prnt(
-            buffer, "%s--%s Server sent reconnect request. Issuing /reconnect" % (pcolor, ccolor))
+        weechat.prnt_datetime_tags(buffer, 0, 0, 'log3', "%s--%s\tServer sent reconnect request. Issuing /reconnect" % (pcolor, ccolor))
         weechat.command(buffer, "/reconnect")
     return ""
 
@@ -461,7 +463,7 @@ def twitch_usernotice(data, modifier, server, string):
         msg = tags['system-msg'].replace('\\s',' ')
         if mp['text']:
             msg += ' [Comment] '+mp['text']
-        weechat.prnt(buffer, '%s--%s %s' % (pcolor, ccolor, msg))
+        weechat.prnt_datetime_tags(buffer, 0, 0, 'irc_notice,log1,notify_message', '%s--%s\t%s' % (pcolor, ccolor, msg))
     return ''
 
 
